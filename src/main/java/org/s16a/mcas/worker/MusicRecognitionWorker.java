@@ -21,8 +21,8 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
 import java.io.File;
-import java.io.PrintStream;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.s16a.mcas.util.acoustid.AcoustID;
 import org.s16a.mcas.util.acoustid.ChromaPrint;
@@ -32,7 +32,7 @@ import org.s16a.mcas.util.TrackInformation;
 public class MusicRecognitionWorker implements Runnable {
     private static final String TASK_QUEUE_NAME = MCAS.music.toString();
     private static final String FPCALC = "/knowmin/chromaprint-fpcalc-1.3.2-linux-x86_64/fpcalc";
-    private static final int QUERYRATE = 15;
+    private static final int QUERYRATE = 10;
 
     public void run () {
 
@@ -66,8 +66,7 @@ public class MusicRecognitionWorker implements Runnable {
                 try {
                     Cache cache = new Cache(url);
 
-                    String output = "";
-                    ArrayList<TrackInformation> trackInformations = new ArrayList<>();
+                    Map<String, TrackInformation> mapping = new HashMap<>();
 
                     // Walk cache directory and process .wav audio files
                     final File[] files = new File(cache.getPath()).listFiles();
@@ -76,12 +75,10 @@ public class MusicRecognitionWorker implements Runnable {
                         if (file.isFile()) {
                             if (isValidForProcessing(file.getName())) {
                                 try {
-//                                    output += file.getName() + "\n" + processAudioFile(file.getAbsolutePath()) + "\n";
-
                                     TrackInformation currentTrackInformation = processAudioFile(file.getAbsolutePath());
 
                                     if (currentTrackInformation != null)
-                                        trackInformations.add(currentTrackInformation);
+                                        mapping.put(file.getName(), currentTrackInformation);
 
                                     // Sleep to prevent musicbrainz from overloading
                                     Thread.sleep(QUERYRATE * 1000);
@@ -92,13 +89,7 @@ public class MusicRecognitionWorker implements Runnable {
                         }
                     }
 
-                    extractTrackInfo(url, trackInformations);
-
-
-//                    String modelFileName = cache.getFilePath("data.ttl");
-//                    PrintStream fileStream = new PrintStream(modelFileName);
-//                    fileStream.println(output);
-//                    fileStream.close();
+                    extractTrackInfo(url, mapping);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -124,12 +115,11 @@ public class MusicRecognitionWorker implements Runnable {
         return null;
     }
 
-    private static void extractTrackInfo(String url, ArrayList<TrackInformation> list) throws IOException {
+    private static void extractTrackInfo(String url, Map<String, TrackInformation> mapping) throws IOException {
         Cache cache = new Cache(url);
 
         Model model = ModelFactory.createDefaultModel();
         String modelFileName = cache.getFilePath("data.ttl");
-        String COAL_SERVER_URI = "http://coal.s16a.org/resource";
         String MEDIA_URI = cache.getUrl();
 
         File f = new File(modelFileName);
@@ -148,17 +138,36 @@ public class MusicRecognitionWorker implements Runnable {
         model.setNsPrefix("foaf", foaf);
         String nif = "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#";
         model.setNsPrefix("nif", nif);
+        // todo: implement named entity linking
+        String dbp = "http://de.dbpedia.org/resource/";
+        model.setNsPrefix("dbpedia-de", dbp);
 
-        for (TrackInformation trackInformation : list) {
+        for (String filename : mapping.keySet()) {
+            TrackInformation trackInformation = mapping.get(filename);
+
             // todo: add range of music segment
-            Resource resource = model.createResource(url + "#t=");
+            Resource resource = model.createResource(url + "#t="+ getRangeAsString(filename));
 
             resource.addProperty(DCTerms.isPartOf, MEDIA_URI);
             resource.addProperty(RDF.type, model.createResource(nif + "RFC5147String"));
             resource.addProperty(RDF.type, mo + "Track");
-            resource.addLiteral(model.createProperty(dc + "title"), trackInformation.getTitle());
-            resource.addLiteral(model.createProperty(foaf + "artist"), trackInformation.getArtist());
 
+            if (trackInformation.getTitle() != null)
+                resource.addLiteral(model.createProperty(dc + "title"), trackInformation.getTitle());
+
+            if (trackInformation.getArtist() != null)
+                resource.addProperty(model.createProperty(mo + "artist"), model.createResource(dbp + trackInformation.getArtist()));
+
+            if (trackInformation.getRelease() != null)
+                resource.addLiteral(model.createProperty(mo + "release"), trackInformation.getRelease());
+
+//            resource.addLiteral(model.createProperty(mo + "artwork"), trackInformation.getArtwork());
+
+            if (trackInformation.getIsrc() != null)
+                resource.addLiteral(model.createProperty(mo + "isrc"), trackInformation.getIsrc());
+
+            if (trackInformation.getMusicbrainzid() != null)
+                resource.addLiteral(model.createProperty(mo + "musicbrainz_guid"), trackInformation.getMusicbrainzid());
 
         }
 
