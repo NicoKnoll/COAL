@@ -4,7 +4,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.hp.hpl.jena.rdf.model.Model;
-import org.apache.commons.cli.*;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.vocabulary.DCTerms;
+import com.hp.hpl.jena.vocabulary.RDF;
 import org.s16a.mcas.Enqueuer;
 import org.s16a.mcas.MCAS;
 import org.s16a.mcas.Cache;
@@ -19,6 +22,7 @@ import com.rabbitmq.client.Envelope;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayList;
 
 import org.s16a.mcas.util.acoustid.AcoustID;
 import org.s16a.mcas.util.acoustid.ChromaPrint;
@@ -28,7 +32,7 @@ import org.s16a.mcas.util.TrackInformation;
 public class MusicRecognitionWorker implements Runnable {
     private static final String TASK_QUEUE_NAME = MCAS.music.toString();
     private static final String FPCALC = "/knowmin/chromaprint-fpcalc-1.3.2-linux-x86_64/fpcalc";
-    private static final int QUERYRATE = 5;
+    private static final int QUERYRATE = 15;
 
     public void run () {
 
@@ -63,6 +67,7 @@ public class MusicRecognitionWorker implements Runnable {
                     Cache cache = new Cache(url);
 
                     String output = "";
+                    ArrayList<TrackInformation> trackInformations = new ArrayList<>();
 
                     // Walk cache directory and process .wav audio files
                     final File[] files = new File(cache.getPath()).listFiles();
@@ -71,7 +76,12 @@ public class MusicRecognitionWorker implements Runnable {
                         if (file.isFile()) {
                             if (isValidForProcessing(file.getName())) {
                                 try {
-                                    output += processAudioFile(file.getAbsolutePath()) + "\n";
+//                                    output += file.getName() + "\n" + processAudioFile(file.getAbsolutePath()) + "\n";
+
+                                    TrackInformation currentTrackInformation = processAudioFile(file.getAbsolutePath());
+
+                                    if (currentTrackInformation != null)
+                                        trackInformations.add(currentTrackInformation);
 
                                     // Sleep to prevent musicbrainz from overloading
                                     Thread.sleep(QUERYRATE * 1000);
@@ -82,10 +92,13 @@ public class MusicRecognitionWorker implements Runnable {
                         }
                     }
 
-                    String modelFileName = cache.getFilePath("data.ttl");
-                    PrintStream fileStream = new PrintStream(modelFileName);
-                    fileStream.println(output);
-                    fileStream.close();
+                    extractTrackInfo(url, trackInformations);
+
+
+//                    String modelFileName = cache.getFilePath("data.ttl");
+//                    PrintStream fileStream = new PrintStream(modelFileName);
+//                    fileStream.println(output);
+//                    fileStream.close();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -98,24 +111,59 @@ public class MusicRecognitionWorker implements Runnable {
         channel.basicConsume(TASK_QUEUE_NAME, false, consumer);
     }
 
-
-    private static String processAudioFile(String url) throws Exception {
+    private static TrackInformation processAudioFile(String url) throws Exception {
         File file = new File(url);
 
         final ChromaPrint chromaprint = AcoustID.chromaprint(file, FPCALC);
         final String musicbrainzId = AcoustID.lookup(chromaprint);
 
         if (musicbrainzId != null) {
-            final TrackInformation trackInformation = MusicBrainz.lookup(musicbrainzId);
-
-            if (trackInformation != null) {
-                return trackInformation.toString();
-            }
-
-            return "No track information found in Musicbrainz database";
+            return  MusicBrainz.lookup(musicbrainzId);
         }
 
-        return "No recording id found in AcoustId database";
+        return null;
+    }
+
+    private static void extractTrackInfo(String url, ArrayList<TrackInformation> list) throws IOException {
+        Cache cache = new Cache(url);
+
+        Model model = ModelFactory.createDefaultModel();
+        String modelFileName = cache.getFilePath("data.ttl");
+        String COAL_SERVER_URI = "http://coal.s16a.org/resource";
+        String MEDIA_URI = cache.getUrl();
+
+        File f = new File(modelFileName);
+
+        if (f.exists()) {
+            model.read(modelFileName);
+        }
+
+        String mo = "http://purl.org/ontology/mo/";
+        model.setNsPrefix("mo", mo);
+        String dc = "http://purl.org/dc/elements/1.1/";
+        model.setNsPrefix("dc", dc);
+        String xsd = "http://www.w3.org/2001/XMLSchema#";
+        model.setNsPrefix("xsd", xsd);
+        String foaf = "http://xmlns.com/foaf/0.1/";
+        model.setNsPrefix("foaf", foaf);
+        String nif = "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#";
+        model.setNsPrefix("nif", nif);
+
+        for (TrackInformation trackInformation : list) {
+            // todo: add range of music segment
+            Resource resource = model.createResource(url + "#t=");
+
+            resource.addProperty(DCTerms.isPartOf, MEDIA_URI);
+            resource.addProperty(RDF.type, model.createResource(nif + "RFC5147String"));
+            resource.addProperty(RDF.type, mo + "Track");
+            resource.addLiteral(model.createProperty(dc + "title"), trackInformation.getTitle());
+            resource.addLiteral(model.createProperty(foaf + "artist"), trackInformation.getArtist());
+
+
+        }
+
+        FileWriter out = new FileWriter(modelFileName);
+        printTurtle(model, out, cache);
     }
 
     private static boolean isValidForProcessing(String filename) {
@@ -138,6 +186,14 @@ public class MusicRecognitionWorker implements Runnable {
         int end = Integer.parseInt(range[1]);
 
         return (end-start) > 60;
+    }
+
+    private static String getRangeAsString(String filename) {
+        filename = filename.substring(0, filename.length() - 10);
+
+        String[] range = filename.split("-");
+
+        return range[0] + "," + range[1];
     }
 
     private static void printTurtle(Model model, FileWriter writer, Cache cache) {
