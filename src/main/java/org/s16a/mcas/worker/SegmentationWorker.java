@@ -10,11 +10,11 @@ public class SegmentationWorker extends PythonWorker implements Runnable {
 	public void run() {
 
         try {
-            System.out.println("[x] Executing Segmentation worker");
+            System.out.println(" [x] Execute : " + SegmentationWorker.class.getSimpleName());
             executePythonWorker(
                     TASK_QUEUE_NAME,
-                    "/usr/bin/python ./src/main/java/org/s16a/mcas/worker/SegmentationWorker.py ",
-                    "Extracting segments was successful"
+                    SegmentationWorker.class.getSimpleName(),
+                    "/usr/bin/python ./src/main/java/org/s16a/mcas/worker/SegmentationWorker.py "
             );
 
         } catch (Exception e) {

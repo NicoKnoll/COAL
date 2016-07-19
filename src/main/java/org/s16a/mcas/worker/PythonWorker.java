@@ -11,11 +11,11 @@ import java.io.InputStreamReader;
 
 abstract class PythonWorker {
 
-    public static void executePythonWorker (final Property taskQueueName, final String pathToPythonWorker, final String successMessage) throws Exception, IOException {
+    public static void executePythonWorker (final Property taskQueueName, final String className, final String pathToPythonWorker) throws Exception, IOException {
         final Channel channel = Enqueuer.getChannel();
 
         channel.queueDeclare(taskQueueName.toString(), true, false, false, null);
-        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+        System.out.println(" [*] " + className + " is waiting for messages. To exit press CTRL+C");
 
         channel.basicQos(1);
 
@@ -24,7 +24,7 @@ abstract class PythonWorker {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String message = new String(body, "UTF-8");
 
-                System.out.println(" [x] Received '" + message + "'");
+                System.out.println(" [x] Received : " + className);
 
                 try {
                     Cache cache = new Cache(message);
@@ -45,7 +45,6 @@ abstract class PythonWorker {
                     }
 
                     if (lastLine.equals("0")) {
-                        System.out.println(" [x] " + successMessage);
                         Enqueuer.workerFinished(taskQueueName, cache);
                     } else {
                         System.out.println(" [E] SOMETHING WENT WRONG IN " + taskQueueName.toString().toUpperCase());
@@ -57,7 +56,7 @@ abstract class PythonWorker {
                         System.out.println(e.toString());
                 }
                 finally {
-                    System.out.println(" [x] " + taskQueueName.toString().toUpperCase() + " Done");
+                    System.out.println(" [x] Done : " + className);
                     channel.basicAck(envelope.getDeliveryTag(), false);
                 }
 

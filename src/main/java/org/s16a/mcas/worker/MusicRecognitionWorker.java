@@ -37,6 +37,7 @@ public class MusicRecognitionWorker implements Runnable {
     public void run () {
 
         try {
+            System.out.println(" [x] Execute : " + MusicRecognitionWorker.class.getSimpleName());
             executeWorker();
         } catch (Exception e) {
             System.out.println(e.toString());
@@ -53,7 +54,7 @@ public class MusicRecognitionWorker implements Runnable {
         final Channel channel = connection.createChannel();
 
         channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
-        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+        System.out.println(" [*] " + MusicRecognitionWorker.class.getSimpleName() + " is waiting for messages. To exit press CTRL+C");
 
         channel.basicQos(1);
 
@@ -62,7 +63,7 @@ public class MusicRecognitionWorker implements Runnable {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String url = new String(body, "UTF-8");
 
-                System.out.println(" [x] Received '" + url + "'");
+                System.out.println(" [x] Received : " + MusicRecognitionWorker.class.getSimpleName());
                 try {
                     Cache cache = new Cache(url);
 
@@ -94,7 +95,7 @@ public class MusicRecognitionWorker implements Runnable {
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
-                    System.out.println(" [x] Done");
+                    System.out.println(" [x] Done : " + MusicRecognitionWorker.class.getSimpleName());
                     channel.basicAck(envelope.getDeliveryTag(), false);
                 }
             }
@@ -156,7 +157,7 @@ public class MusicRecognitionWorker implements Runnable {
                 resource.addLiteral(model.createProperty(dc + "title"), trackInformation.getTitle());
 
             if (trackInformation.getArtist() != null)
-                resource.addProperty(model.createProperty(mo + "artist"), model.createResource(dbp + trackInformation.getArtist()));
+                resource.addProperty(model.createProperty(mo + "artist"), model.createResource(dbp + trackInformation.getArtist().replaceAll(" ", "_")));
 
             if (trackInformation.getRelease() != null)
                 resource.addLiteral(model.createProperty(mo + "release"), trackInformation.getRelease());
@@ -207,7 +208,7 @@ public class MusicRecognitionWorker implements Runnable {
 
     private static void printTurtle(Model model, FileWriter writer, Cache cache) {
         try {
-            System.out.println("MusicMetaData try save");
+            System.out.println(" [x] Save turtle : " + MusicRecognitionWorker.class.getSimpleName());
             model.write(writer, "TURTLE");
         } finally {
             try {

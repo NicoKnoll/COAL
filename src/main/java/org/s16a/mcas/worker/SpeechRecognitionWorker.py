@@ -32,7 +32,7 @@ def recognizeForPart(fileName, segment, previousThread):
                 pass
 
         try:
-            with open(textFileNameForSegment(segment), "a") as textFile: 
+            with open(textFileNameForSegment(segment), "a") as textFile:
                 textFile.write(text + "\n")
             textFile.close()
         except:

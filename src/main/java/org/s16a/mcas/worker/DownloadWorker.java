@@ -27,7 +27,7 @@ public class DownloadWorker implements Runnable {
 	public void run () {
 
         try {
-			System.out.println("[x] Executing Download worker");
+            System.out.println(" [x] Execute : " + DownloadWorker.class.getSimpleName());
             executeWorker();
 		} catch (Exception e) {
             System.out.println(e.toString());
@@ -39,7 +39,7 @@ public class DownloadWorker implements Runnable {
         final Channel channel = Enqueuer.getChannel();
 
 		channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
-		System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+        System.out.println(" [*] " + DownloadWorker.class.getSimpleName() + " is waiting for messages. To exit press CTRL+C");
 
 		channel.basicQos(1);
 
@@ -48,11 +48,11 @@ public class DownloadWorker implements Runnable {
 			public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
 				String url = new String(body, "UTF-8");
 
-				System.out.println(" [x] Received '" + url + "'");
+                System.out.println(" [x] Received : " + DownloadWorker.class.getSimpleName());
 				try {
 					downloadAndUpdateModel(url);
 				} finally {
-					System.out.println(" [x] Done");
+                    System.out.println(" [x] Done : " + DownloadWorker.class.getSimpleName());
 					channel.basicAck(envelope.getDeliveryTag(), false);
 				}
 			}

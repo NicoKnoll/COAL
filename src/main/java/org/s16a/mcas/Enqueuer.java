@@ -58,7 +58,7 @@ public class Enqueuer {
         if(workerDependencies.containsKey(finishedWorker)) {
             for (Property sleepingWorker : workerDependencies.get(finishedWorker)) {
                 if (model.getResource(cache.getUrl()).getProperty(sleepingWorker) == null) {
-                    System.out.println("enqueue for " + sleepingWorker.toString());
+                    System.out.println(" [x] Enqueue for " + sleepingWorker.toString());
 
                     String QUEUE_NAME = sleepingWorker.toString();
                     ConnectionFactory factory = new ConnectionFactory();
@@ -69,7 +69,7 @@ public class Enqueuer {
                     String message = cache.getUrl();
                     channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
 
-                    System.out.println(" [x] Sent '" + message + "'");
+                    System.out.println(" [x] Sent to " + sleepingWorker.toString());
 
                     channel.close();
                     connection.close();

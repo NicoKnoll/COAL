@@ -23,6 +23,7 @@ public class ID3TagWorker implements Runnable {
     public void run() {
 
         try {
+            System.out.println(" [x] Execute : " + ID3TagWorker.class.getSimpleName());
             executeWorker();
         } catch (Exception e) {
             System.out.println(e.toString());
@@ -34,7 +35,7 @@ public class ID3TagWorker implements Runnable {
         final Channel channel = Enqueuer.getChannel();
 
         channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
-        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+        System.out.println(" [*] " + ID3TagWorker.class.getSimpleName() + " is waiting for messages. To exit press CTRL+C");
 
         channel.basicQos(1);
 
@@ -43,7 +44,7 @@ public class ID3TagWorker implements Runnable {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String url = new String(body, "UTF-8");
 
-                System.out.println(" [x] " + TASK_QUEUE_NAME + "received '" + url + "'");
+                System.out.println(" [x] Received : " + ID3TagWorker.class.getSimpleName());
                 try {
                     Cache cache = new Cache(url);
 
@@ -53,11 +54,10 @@ public class ID3TagWorker implements Runnable {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     extractID3tags(url, reader);
 
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
-                    System.out.println(" [x] Done " + TASK_QUEUE_NAME);
+                    System.out.println(" [x] Done : " + ID3TagWorker.class.getSimpleName());
                     channel.basicAck(envelope.getDeliveryTag(), false);
                 }
             }
@@ -127,7 +127,7 @@ public class ID3TagWorker implements Runnable {
     private static void printTurtle(Model model, FileWriter writer, Cache cache) {
         try {
             model.write(writer, "TURTLE");
-            System.out.println("ID3TagWorker successfully saved");
+            System.out.println(" [x] Save turtle : " + ID3TagWorker.class.getSimpleName());
         } finally {
             try {
                 writer.close();

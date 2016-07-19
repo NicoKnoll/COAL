@@ -10,11 +10,11 @@ public class ConverterWorker extends PythonWorker implements Runnable {
 	public void run() {
 
 		try {
-            System.out.println("[x] Executing Converter worker");
+            System.out.println(" [x] Execute : " + ConverterWorker.class.getSimpleName());
 			executePythonWorker(
 					TASK_QUEUE_NAME,
-					"/usr/bin/python ./src/main/java/org/s16a/mcas/worker/ConverterWorker.py ",
-					"Converting was successful"
+                    ConverterWorker.class.getSimpleName(),
+					"/usr/bin/python ./src/main/java/org/s16a/mcas/worker/ConverterWorker.py "
 			);
 
 		} catch (Exception e) {

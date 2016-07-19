@@ -10,11 +10,11 @@ public class SpeechRecognitionWorker extends PythonWorker implements Runnable {
 	public void run() {
 
 		try {
-			System.out.println("[x] Executing SpeechRecognition worker");
+            System.out.println(" [x] Execute : " + SpeechRecognitionWorker.class.getSimpleName());
 			executePythonWorker(
 					TASK_QUEUE_NAME,
-					"/usr/bin/python ./src/main/java/org/s16a/mcas/worker/SpeechRecognitionWorker.py ",
-					"Extracting text was successful"
+                    SpeechRecognitionWorker.class.getSimpleName(),
+                    "/usr/bin/python ./src/main/java/org/s16a/mcas/worker/SpeechRecognitionWorker.py "
 			);
 
 		} catch (Exception e) {
