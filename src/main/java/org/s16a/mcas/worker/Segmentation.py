@@ -34,6 +34,7 @@ def sliceSegmentIntoParts(pathToFile, partDurationMS = 5000):
     slashPos = pathToFile.rfind("/")
     if slashPos != -1:
         pathToDir = pathToFile[:pathToFile.rfind("/")+1]
+        fileInName = pathToFile[pathToFile.rfind("/")+1:].replace(".wav","").replace("_speech","")
     else:
         pathToDir = ""
 
@@ -51,7 +52,7 @@ def sliceSegmentIntoParts(pathToFile, partDurationMS = 5000):
     fileNames = []
 
     while endMS <= duration:
-        fileOutName = pathToDir + str(startMS) + "-" + str(endMS) + ".wav"
+        fileOutName = pathToDir + fileInName + ":" + str(startMS) + "-" + str(endMS) + ".wav"
         sliceWav(wave.open(pathToFile, "r"), fileOutName, startMS, endMS)
         fileNames.append(fileOutName)
         startMS = endMS - 500 #Half a second of puffer for speechRecognition
