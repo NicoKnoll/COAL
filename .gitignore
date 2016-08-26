@@ -6,6 +6,7 @@ target/*
 .idea/*
 org.s16a.mcas.iml
 curl_request.sh
+ACRCloudConfig.py
 *.pyc
 target/surefire-reports/org.s16a.mcas.MediainfoTest.txt
 target/surefire-reports/TEST-org.s16a.mcas.MediainfoTest.xml

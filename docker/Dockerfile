@@ -63,6 +63,10 @@ RUN wget https://bitbucket.org/acoustid/chromaprint/downloads/chromaprint-fpcalc
 RUN tar xfv chromaprint-fpcalc-1.3.2-linux-x86_64.tar.gz
 RUN echo "alias fpcalc='/knowmin/chromaprint-fpcalc-1.3.2-linux-x86_64/fpcalc'" >> /root/.bashrc
 
+WORKDIR /knowmin
+RUN git clone https://github.com/acrcloud-demo/audio-recognition-quick-trial.git
+RUN mv audio-recognition-quick-trial/acrcloud /usr/local/lib/python2.7/dist-packages/
+
 RUN mkdir COAL
 WORKDIR /knowmin/COAL
 
