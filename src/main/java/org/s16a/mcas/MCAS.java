@@ -27,4 +27,5 @@ public class MCAS {
     public static final Property speech     = m_model.createProperty( NS + "speech" );
     public static final Property music      = m_model.createProperty( NS + "music" );
     public static final Property id3tags    = m_model.createProperty( NS + "id3tags" );
+    public static final Property nel        = m_model.createProperty( NS + "nel" );
 }

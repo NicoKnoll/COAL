@@ -46,6 +46,7 @@ public class Enqueuer {
         workerDependencies.put(MCAS.mediainfo, Arrays.asList(MCAS.id3tags));
         workerDependencies.put(MCAS.converter, Arrays.asList(MCAS.segments));
         workerDependencies.put(MCAS.segments, Arrays.asList(MCAS.speech, MCAS.music));
+        workerDependencies.put(MCAS.speech, Arrays.asList(MCAS.nel));
 
         Model model = ModelFactory.createDefaultModel();
         String modelFileName = cache.getFilePath("data.ttl");

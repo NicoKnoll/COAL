@@ -51,6 +51,9 @@ public class Main {
         Runnable speechRecognitionWorker = new SpeechRecognitionWorker();
         executor.execute(speechRecognitionWorker);
 
+        Runnable namedEntityLinkingWorker = new NamedEntityLinkingWorker();
+        executor.execute(namedEntityLinkingWorker);
+
         Runnable musicRecognitionWorker = new MusicRecognitionWorker();
         executor.execute(musicRecognitionWorker);
 
