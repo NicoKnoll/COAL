@@ -3,6 +3,7 @@ from rdflib import URIRef, Literal, Graph, BNode
 from rdflib.namespace import XSD, RDF
 import namespaces
 import sys
+import os
 import requests
 import ast
 
@@ -12,7 +13,7 @@ KEA_URL = 'http://141.89.225.50/kea-2.0.1/services/annotate'
 def textFileNameForSegment(segment):
     return PATH_TO_DIR + str(segment[0]) + "-" + str(segment[1]) + "_text"
 
-def process_data(model, text_filename):
+def process_data(original_model, text_filename):
 
     with open(text_filename) as file:
         text = file.read()
@@ -29,11 +30,13 @@ def process_data(model, text_filename):
     nif_text = nif.serialize(format='turtle')
     response = requests.post(KEA_URL, data=nif_text)
 
-    print(response.content)
+    model = Graph()
+    model.parse(original_model, format='turtle')
+    model.parse(data=response.content, format='turtle')
 
-    with open(model, "a") as textFile:
-            textFile.write(response.content + "\n")
-    textFile.close()
+    with open(original_model, "r+") as turtleFile:
+            turtleFile.write(model.serialize(format='turtle') + "\n")
+    turtleFile.close()
 
 def func():
     segments = ast.literal_eval(open(PATH_TO_DIR + "/segments", "r").readline())
