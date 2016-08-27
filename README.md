@@ -44,3 +44,9 @@ curl -v -H "accept:text/turtle" "http://DOCKER-MACHINE-IP:8080/coal/resource?url
 ```
 curl -v -H "accept:text/turtle" "http://localhost:8080/coal/resource?url=RESOURCE-URI"
 ```
+
+
+
+**Music Recognition powered by:**
+
+[![ACRCloud](https://www.acrcloud.com/wp-content/uploads/2016/04/acrcloud-logo.png)](https://www.acrcloud.com/)
