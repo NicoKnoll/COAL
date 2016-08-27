@@ -3,7 +3,6 @@ from rdflib import URIRef, Literal, Graph, BNode
 from rdflib.namespace import XSD, RDF
 import namespaces
 import sys
-import os
 import requests
 import ast
 
@@ -14,7 +13,7 @@ KEA_URL = 'http://141.89.225.50/kea-2.0.1/services/annotate'
 def textFileNameForSegment(segment):
     return PATH_TO_DIR + str(segment[0]) + "-" + str(segment[1]) + "_text"
 
-def named_entity_linking(original_model, text_filename):
+def named_entity_linking(original_model, text_filename, segment):
 
     with open(text_filename) as file:
         text = file.read()
@@ -32,10 +31,13 @@ def named_entity_linking(original_model, text_filename):
     # request to kea service
     response = requests.post(KEA_URL, data=nif_text)
 
+    # insert correct media fragment (workaround)
+    corrected_response = response.content.replace("#char=", '#t=' + str(segment[0]) + ',' + str(segment[1]) + '&char=')
+
     # merge existing and new rdf graphs
     model = Graph()
     model.parse(original_model, format='turtle')
-    model.parse(data=response.content, format='turtle')
+    model.parse(data=corrected_response, format='turtle')
 
     with open(original_model, "r+") as turtleFile:
             turtleFile.write(model.serialize(format='turtle') + "\n")
@@ -46,7 +48,7 @@ def func():
     speechSegments = segments[0]
 
     for segment in speechSegments:
-        named_entity_linking(PATH_TO_DIR + "data.ttl", textFileNameForSegment(segment))
+        named_entity_linking(PATH_TO_DIR + "data.ttl", textFileNameForSegment(segment), segment)
 
 worker = PythonWorker(func)
 worker.run()
