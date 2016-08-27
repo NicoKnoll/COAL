@@ -29,7 +29,7 @@ abstract class PythonWorker {
                 try {
                     Cache cache = new Cache(message);
 
-                    Process process = Runtime.getRuntime().exec(pathToPythonWorker + cache.getPath());
+                    Process process = Runtime.getRuntime().exec(pathToPythonWorker + cache.getPath() + " " + message);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
                     String line;

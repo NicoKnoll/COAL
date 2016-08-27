@@ -176,36 +176,6 @@ public class MediainfoWorker implements Runnable{
         r.addLiteral(model.createProperty(ebu + "audioChannelNumber"), channels);
         r.addLiteral(model.createProperty(nfo + "sampleRate"), samplingRate);
 
-        String nif = "http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#";
-        model.setNsPrefix("nif", nif);
-        String dcterms = "http://purl.org/dc/terms/";
-        model.setNsPrefix("dcterms", dcterms);
-        Resource segment = model.createResource(MEDIA_URI + "#t=" + "1,43");
-        segment.addProperty(DCTerms.isPartOf, MEDIA_URI);
-        segment.addProperty(RDF.type, model.createResource(nif + "RFC5147String"));
-        String text1 = "first rule about Fight Club is you don't talk about Fight Club I tell Walter\n" +
-                "I did this to myself before the presentation when I said\n" +
-                "I said across from my boss telling him where in the script each slide cues and when I wanted to run the VIN\n" +
-                "my boss says what do you get yourself into every weekend\n" +
-                "I just don't want to die without a few scars I'd say it's nothing anymore to have\n" +
-                "more to have a beautiful stock body you see those cars that are completely stock cherry\n" +
-                "Cherry right out of a dealer showroom in 1955 I always think what a waste\n" +
-                "the second rule about Fight Club is don't talk about Fight Club\n" +
-                "Flight Club";
-
-        segment.addProperty(model.createProperty(dcterms + "description"), text1);
-
-        segment = model.createResource(MEDIA_URI + "#t=" + "276,304");
-        segment.addProperty(DCTerms.isPartOf, MEDIA_URI);
-        segment.addProperty(RDF.type, model.createResource(nif + "RFC5147String"));
-        String text2 = "because Fight Club exists only in the hours between one fight club store\n" +
-                "the club and you saw the kid who works in the copy\n" +
-                "copy center a month ago you saw this kid who can't remember the 3 hole punch in order to put colored slips\n" +
-                "slip sheets between the coffee packets but this kid wasn't God for 10 minutes when you saw him\n" +
-                "the air out of an account representative twice his size then land on the moon in pounds\n" +
-                "until the kid had to stop";
-        segment.addProperty(model.createProperty(dcterms + "description"), text2);
-
         FileWriter out = new FileWriter(modelFileName);
 
         printTurtle(model, out, cache);

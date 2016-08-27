@@ -29,7 +29,7 @@ RUN pip install scikits.talkbox
 RUN pip install simplejson
 RUN pip install -Iv https://pypi.python.org/packages/source/S/SpeechRecognition/SpeechRecognition-2.1.3.tar.gz
 RUN pip install mutagen
-
+RUN pip install rdflib
 
 RUN wget http://sourceforge.net/projects/mlpy/files/mlpy%203.5.0/mlpy-3.5.0.tar.gz 
 RUN tar xvf mlpy-3.5.0.tar.gz
