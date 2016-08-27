@@ -6,8 +6,8 @@ import sys
 import requests
 import ast
 
-PATH_TO_DIR = sys.argv[1]
-RESOURCE_URL = sys.argv[2]
+PATH_TO_DIR = None
+RESOURCE_URL = None
 KEA_URL = 'http://141.89.225.50/kea-2.0.1/services/annotate'
 
 def textFileNameForSegment(segment):
@@ -44,6 +44,10 @@ def named_entity_linking(original_model, text_filename, segment):
     turtleFile.close()
 
 def func():
+    global PATH_TO_DIR
+    global RESOURCE_URL
+    PATH_TO_DIR = sys.argv[1]
+    RESOURCE_URL = sys.argv[2]
     segments = ast.literal_eval(open(PATH_TO_DIR + "/segments", "r").readline())
     speechSegments = segments[0]
 
