@@ -42,7 +42,7 @@ public class Main {
         Runnable id3TagWorker = new ID3TagWorker();
         executor.execute(id3TagWorker);
 
-        Runnable mediainfoWorker = new MediainfoWorker();
+        Runnable mediainfoWorker = new MediaInfoWorker();
         executor.execute(mediainfoWorker);
 
         Runnable segmentationWorker = new SegmentationWorker();

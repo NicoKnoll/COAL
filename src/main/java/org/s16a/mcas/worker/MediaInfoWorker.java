@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.hp.hpl.jena.vocabulary.DCTerms;
-import com.hp.hpl.jena.vocabulary.RDF;
 import org.s16a.mcas.Cache;
 import org.s16a.mcas.Enqueuer;
 import org.s16a.mcas.MCAS;
@@ -17,20 +15,18 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.vocabulary.DC;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 
-public class MediainfoWorker implements Runnable{
+public class MediaInfoWorker implements Runnable{
 
 	private static final String TASK_QUEUE_NAME = MCAS.mediainfo.toString();
 
 	public void run () {
 
 		try {
-            System.out.println(" [x] Execute : " + MediainfoWorker.class.getSimpleName());
+            System.out.println(" [x] Execute : " + MediaInfoWorker.class.getSimpleName());
             executeWorker();
 		} catch (Exception e) {
 			System.out.println(e.toString());
@@ -41,7 +37,7 @@ public class MediainfoWorker implements Runnable{
         final Channel channel = Enqueuer.getChannel();
 
 		channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
-        System.out.println(" [*] " + MediainfoWorker.class.getSimpleName() + " is waiting for messages. To exit press CTRL+C");
+        System.out.println(" [*] " + MediaInfoWorker.class.getSimpleName() + " is waiting for messages. To exit press CTRL+C");
 
 		channel.basicQos(1);
 
@@ -50,7 +46,7 @@ public class MediainfoWorker implements Runnable{
 			public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
 				String url = new String(body, "UTF-8");
 
-                System.out.println(" [x] Received : " + MediainfoWorker.class.getSimpleName());
+                System.out.println(" [x] Received : " + MediaInfoWorker.class.getSimpleName());
 				try {
 
                     Cache cache = new Cache(url);
@@ -71,7 +67,7 @@ public class MediainfoWorker implements Runnable{
                     }
 
 				} finally {
-                    System.out.println(" [x] Done : " + MediainfoWorker.class.getSimpleName());
+                    System.out.println(" [x] Done : " + MediaInfoWorker.class.getSimpleName());
 					channel.basicAck(envelope.getDeliveryTag(), false);
 				}
 			}
@@ -183,7 +179,7 @@ public class MediainfoWorker implements Runnable{
 
 	private static void printTurtle(Model model, FileWriter writer, Cache cache) {
 		try {
-			System.out.println(" [x] Save turtle : " + MediainfoWorker.class.getSimpleName());
+			System.out.println(" [x] Save turtle : " + MediaInfoWorker.class.getSimpleName());
 			model.write(writer, "TURTLE");
 		} finally {
 			try {
